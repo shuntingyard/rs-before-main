@@ -1,5 +1,5 @@
 # rs-before-main
-Just an exercise
+Control Rust's build process, learn about glibc/binutils and produce freestanding Rust code
 
 ## Reduce Size
 ### Basics
@@ -7,8 +7,8 @@ In `Cargo.toml` use
 ```toml
 strip = true
 opt-level = "z"
-lto=true
-panic="abort"
+lto = true
+panic = "abort"
 ```
 Binary size will be about 260K.
 
@@ -26,7 +26,7 @@ in a minimalistic way, we ended up with a rust binary containing only three sect
  `.init`, `.text` and `.fini`.
 
 To compensate for this (in regard to inspecting binaries) a minimalistic
-C program has been added.
+C program was added.
 
 ### fn _start() in Rust
 Build `main.rs` when it implements `fn _start()`:
@@ -63,7 +63,7 @@ https://youtu.be/q8irLfXwaFM
 
 ## More About Building
 ### Freestanding II
-[A Freestanding Rust Binary](https://os.phil-opp.com/freestanding-rust-binary/) from "Writing an OS in Rust".
+[A Freestanding Rust Binary](https://os.phil-opp.com/freestanding-rust-binary/) (from "Writing an OS in Rust")
 
 ### Support Older Libc Versions
 [Build and bind against older libc version (stackoverflow)](https://stackoverflow.com/questions/63724484/build-and-bind-against-older-libc-version)
