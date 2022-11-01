@@ -5,9 +5,29 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+
+# To inspect crate sizes:
+#
+#   $ cargo install cargo-bloat --no-default-features
+#
+#       then (with symbols included in the release build, i.e. strip=false):
+#
+#   $ cargo bloat --release --crates
+#
+#       to list how much space is used per dependency.
+
+# opt-level: (from https://doc.rust-lang.org/cargo/reference/profiles.html)
+#
+#   0:      no optimizations
+#   1:      basic optimizations
+#   2:      some optimizations
+#   3:      all optimizations
+#   "s":    optimize for binary size
+#   "z":    optimize for binary size, but also turn off loop vectorization.
+#
 [profile.release]
 strip = true
-opt-level = "z"     # Optimize for size.
+opt-level = "z"
 lto=true            # link time optimization
 panic="abort"       # Don't unwind verbosely, just stop.
 
