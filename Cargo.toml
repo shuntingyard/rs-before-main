@@ -1,6 +1,6 @@
 [package]
 name = "rs-before-main"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -10,3 +10,6 @@ strip = true
 opt-level = "z"     # Optimize for size.
 lto=true            # link time optimization
 panic="abort"       # Don't unwind verbosely, just stop.
+
+[dependencies]
+libc = { version = "0.2", default-features = false }
