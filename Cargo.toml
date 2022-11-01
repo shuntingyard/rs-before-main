@@ -32,4 +32,4 @@ lto=true            # link time optimization
 panic="abort"       # Don't unwind verbosely, just stop.
 
 [dependencies]
-libc = { version = "0.2", default-features = false }
+#libc = { version = "0.2", default-features = false }
