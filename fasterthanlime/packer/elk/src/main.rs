@@ -25,6 +25,12 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     println!("Executing {:?} in memory...", input_path);
 
+    println!("Press enter to unprotect...");
+    {
+        let mut s = String::new();
+        std::io::stdin().read_line(&mut s)?;
+    }
+
     use region::{protect, Protection};
     let code = &code_ph.data;
     unsafe {
@@ -36,6 +42,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("        code @ {:?}", code.as_ptr());
     println!("entry offset @ {:?}", entry_offset);
     println!("entry  point @ {:?}", entry_point);
+
+    println!("Press enter to jmp...");
+    {
+        let mut s = String::new();
+        std::io::stdin().read_line(&mut s)?;
+    }
+
     unsafe {
         jmp(entry_point);
     }

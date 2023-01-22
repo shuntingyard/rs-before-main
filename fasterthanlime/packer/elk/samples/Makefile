@@ -1,6 +1,10 @@
 .PHONY: all clean
 
-all: hello entry_point
+all: nodata hello entry_point
+
+nodata: nodata.asm
+	nasm -f elf64 -g -F dwarf $<
+	ld $@.o -o $@
 
 hello: hello.asm
 	nasm -f elf64 -g -F dwarf $<
@@ -10,4 +14,4 @@ entry_point: entry_point.c
 	gcc $< -o $@
 
 clean:
-	rm -f  entry_point hello hello.o
+	rm -f  entry_point hello hello.o nodata nodata.o
