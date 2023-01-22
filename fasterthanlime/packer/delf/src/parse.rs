@@ -10,12 +10,32 @@ macro_rules! impl_parse_for_enum {
                 use nom::{
                     combinator::map_res,
                     error::{context, ErrorKind},
-                    number::complete::le_u16,
+                    number::complete::$number_parser,
                 };
-                context(
-                    "Machine",
-                    map_res(le_u16, |x| Self::try_from(x).map_err(|_| ErrorKind::Alt)),
-                )(i)
+                let parser = map_res($number_parser, |x| {
+                    Self::try_from(x).map_err(|_| ErrorKind::Alt)
+                });
+                context(stringify!($type), parser)(i)
+            }
+        }
+    };
+}
+
+// And one to parse bitflag enums
+#[macro_export]
+macro_rules! impl_parse_for_enumflags {
+    ($type :ident, $number_parser: ident) => {
+        impl $type {
+            fn parse(i: parse::Input) -> parse::Result<enumflags2::BitFlags<Self>> {
+                use nom::{
+                    combinator::map_res,
+                    error::{context, ErrorKind},
+                    number::complete::$number_parser,
+                };
+                let parser = map_res($number_parser, |x| {
+                    enumflags2::BitFlags::<Self>::from_bits(x).map_err(|_| ErrorKind::Alt)
+                });
+                context(stringify!($type), parser)(i)
             }
         }
     };
