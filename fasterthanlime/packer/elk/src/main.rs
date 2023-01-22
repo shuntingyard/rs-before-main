@@ -1,5 +1,8 @@
 use std::{env, error::Error, fs};
 
+use mmap::{MapOption, MemoryMap};
+use region::{protect, Protection};
+
 fn main() -> Result<(), Box<dyn Error>> {
     let input_path = env::args().nth(1).expect("usage: elk FILE");
     let input = fs::read(&input_path)?;
@@ -23,26 +26,60 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     ndisasm(&code_ph.data[..], file.entry_point)?;
 
-    println!("Executing {:?} in memory...", input_path);
+    println!("Mapping {:?} in memory...", input_path);
 
-    println!("Press enter to unprotect...");
+    // We'll need to hold onto our "mmap::MemoryMap", because dropping them
+    // unmaps them!
+    let mut mappings = Vec::new();
+
+    // We're only interested in "Load" segments.
+    for ph in file
+        .program_headers
+        .iter()
+        .filter(|ph| ph.r#type == delf::SegmentType::Load)
     {
-        let mut s = String::new();
-        std::io::stdin().read_line(&mut s)?;
+        println!("Mapping segment @ {:?} with {:?}", ph.mem_range(), ph.flags);
+        // Note: mmap-ing would fail without segmeents being aligned on pages!
+        let mem_range = ph.mem_range();
+        let len: usize = (mem_range.end - mem_range.start).into();
+
+        // Note: `as` is the "cast" operator, and `_` is a placeholder to force rustc
+        // to infer the type based on other hints (here, the left-hand-side declaration).
+        let addr: *mut u8 = mem_range.start.0 as _;
+
+        // At first, we want the memory area to be writable, so we can copy to it.
+        // Permissions come later.
+        let map = MemoryMap::new(len, &[MapOption::MapWritable, MapOption::MapAddr(addr)])?;
+
+        println!("Copying segment data...");
+        {
+            let dst = unsafe { std::slice::from_raw_parts_mut(addr, ph.data.len()) };
+            dst.copy_from_slice(&ph.data[..]);
+        }
+
+        println!("Adjusting permissions...");
+        // The `region` crate and our `delf` crate have two different enums (and bit flags)
+        // for protection, so we need to map from delf's to region's.
+        let mut protection = Protection::NONE;
+        for flag in ph.flags.iter() {
+            protection |= match flag {
+                delf::SegmentFlag::Read => Protection::READ,
+                delf::SegmentFlag::Write => Protection::WRITE,
+                delf::SegmentFlag::Execute => Protection::EXECUTE,
+            }
+        }
+        unsafe {
+            protect(addr, len, protection)?;
+        }
+        mappings.push(map);
     }
 
-    use region::{protect, Protection};
     let code = &code_ph.data;
     unsafe {
         protect(code.as_ptr(), code.len(), Protection::READ_WRITE_EXECUTE)?;
     }
 
-    let entry_offset = file.entry_point - code_ph.vaddr;
-    let entry_point = unsafe { code.as_ptr().add(entry_offset.into()) };
-    println!("        code @ {:?}", code.as_ptr());
-    println!("entry offset @ {:?}", entry_offset);
-    println!("entry  point @ {:?}", entry_point);
-
+    println!("Jumping to entry point @ {:?}", file.entry_point);
     println!("Press enter to jmp...");
     {
         let mut s = String::new();
@@ -50,7 +87,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     unsafe {
-        jmp(entry_point);
+        // Note that we don't have to do pointer arithmetic here,
+        // as the entry point is indeed mapped in memory at the right place.
+        jmp(file.entry_point.0 as _);
     }
 
     Ok(())
