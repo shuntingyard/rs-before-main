@@ -5,13 +5,13 @@
 #include <errno.h>
 #include <sys/mman.h>
 
-const char *instructions = "\x48\x31\xFF\xB8\x3C\x00\x00\x00\x0F\x05";
+#include "instructions.h"
 
 int main() {
   printf("        main @ %p\n", &main);
-  printf("instructions @ %p\n", instructions);
+  printf("instructions @ %p\n", INSTRUCTIONS);
 
-  size_t region = (size_t)instructions;
+  size_t region = (size_t)INSTRUCTIONS;
   region = region & (~0xFFF);
   printf("        page @ %p\n", region);
 
@@ -25,7 +25,7 @@ int main() {
     return 1;
   }
 
-  void (*f)(void) = (void *)instructions;
+  void (*f)(void) = (void *)INSTRUCTIONS;
   printf("jumping...\n");
   f();
   printf("after jump\b");
