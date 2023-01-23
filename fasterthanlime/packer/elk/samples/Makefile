@@ -4,7 +4,7 @@ all: hello-pie nodata hello entry_point
 
 hello-pie: hello-pie.asm
 	nasm -f elf64 -g -F dwarf $<
-	ld $@.o -o $@
+	ld -pie $@.o -o $@
 
 nodata: nodata.asm
 	nasm -f elf64 -g -F dwarf $<
