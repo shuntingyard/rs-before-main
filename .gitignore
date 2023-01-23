@@ -22,7 +22,7 @@ target/
 
 # For gcc
 a.out
-*.o
+#*.o
 
 # fasterthanlime/nasm_warmup
 getsize
@@ -30,6 +30,6 @@ readfile
 readfile-rs
 
 # fasterthanlime/packer
-entry_point
-hello
-nodata
+#entry_point
+#hello
+#nodata
